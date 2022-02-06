@@ -27,3 +27,29 @@ export class Point2D {
     this.y = y;
   }
 }
+
+export class Point3D {
+  constructor(public x: number, public y: number, public z: number) {}
+
+  public distanceFrom(point: Point3D): number {
+    const x = this.x - point.x;
+    const y = this.y - point.y;
+    const d = Math.sqrt(x * x + y * y);
+    const z = this.z - point.z;
+    return Math.sqrt(d * d + z * z);
+  }
+  public setX(x: number): void {
+    this.x = x;
+  }
+  public setY(y: number): void {
+    this.y = y;
+  }
+  public setZ(z: number): void {
+    this.z = z;
+  }
+  public set(x: number, y: number, z: number): void {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+}
