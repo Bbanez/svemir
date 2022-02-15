@@ -1,5 +1,5 @@
 import { PCFSoftShadowMap, WebGLRenderer } from 'three';
-import type { Camera } from 'three';
+import type { PerspectiveCamera } from 'three';
 import type { SvemirConfigRenderer } from './types';
 import { Scene } from './scene';
 
@@ -7,7 +7,7 @@ export class Renderer {
   static renderer = new WebGLRenderer();
   static width = 0;
   static height = 0;
-  private static camera: Camera;
+  private static camera: PerspectiveCamera;
 
   static init(el: HTMLElement, config?: SvemirConfigRenderer) {
     if (!config) {
@@ -25,16 +25,23 @@ export class Renderer {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      let debounce: NodeJS.Timeout;
       window.addEventListener('resize', () => {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+          this.width = window.innerWidth;
+          this.height = window.innerHeight;
+          this.camera.aspect = this.width / this.height;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.render();
+        }, 200);
       });
     }
     el.appendChild(this.renderer.domElement);
   }
 
-  static setCamera(camera: Camera): void {
+  static setCamera(camera: PerspectiveCamera): void {
     this.camera = camera;
   }
 

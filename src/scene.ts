@@ -5,6 +5,6 @@ export class Scene {
 
   static init() {
     this.scene = new SceneThree();
-    this.scene.background = new Color(255, 0, 0);
+    this.scene.background = new Color(0, 0, 0);
   }
 }

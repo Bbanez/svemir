@@ -13,6 +13,10 @@ export class Mouse {
     right: false,
     x: 0,
     y: 0,
+    delta: {
+      x: 0,
+      y: 0,
+    }
   };
   private static subs: {
     [MouseEventType.ALL]: MouseSubscription;
@@ -28,12 +32,10 @@ export class Mouse {
 
   private static trigger(type: MouseEventType, event: MouseEvent) {
     for (const id in Mouse.subs[type]) {
-      const sub = Mouse.subs[type][id];
-      sub(Mouse.state, event);
+      Mouse.subs[MouseEventType.ALL][id](Mouse.state, event);
     }
     for (const id in Mouse.subs[MouseEventType.ALL]) {
-      const sub = Mouse.subs[type][id];
-      sub(Mouse.state, event);
+      Mouse.subs[MouseEventType.ALL][id](Mouse.state, event);
     }
   }
   private static onMouseDown(event: MouseEvent) {
@@ -73,6 +75,8 @@ export class Mouse {
     }
   }
   private static onMouseMove(event: MouseEvent) {
+    Mouse.state.delta.x = event.clientX - Mouse.state.x;
+    Mouse.state.delta.y = event.clientY - Mouse.state.y;
     Mouse.state.x = event.clientX;
     Mouse.state.y = event.clientY;
     Mouse.trigger(MouseEventType.MOUSE_MOVE, event);
@@ -97,6 +101,7 @@ export class Mouse {
     type: MouseEventType,
     callback: MouseEventCallback,
   ): () => void {
+    callback(Mouse.state, undefined as never);
     const id = uuidv4();
     Mouse.subs[type][id] = callback;
 

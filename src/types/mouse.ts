@@ -4,6 +4,10 @@ export interface MouseState {
   right: boolean;
   x: number;
   y: number;
+  delta: {
+    x: number;
+    y: number;
+  };
 }
 
 // eslint-disable-next-line no-shadow
@@ -20,4 +24,8 @@ export interface MouseEventCallback {
 
 export interface MouseSubscription {
   [id: string]: MouseEventCallback;
+}
+
+export interface MouseUnsubscribe {
+  (): void;
 }

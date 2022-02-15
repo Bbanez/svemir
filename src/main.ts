@@ -1,12 +1,13 @@
 import {
   AmbientLight,
+  AxesHelper,
   DirectionalLight,
   Mesh,
   MeshStandardMaterial,
+  PerspectiveCamera,
   PlaneGeometry,
 } from 'three';
 import { Spectator } from './util';
-import { PerspectiveCamera } from './camera';
 import { Keyboard } from './keyboard';
 import { Loader } from './loader';
 import { Mouse } from './mouse';
@@ -56,9 +57,13 @@ export function createSvemir(config: SvemirConfig): Svemir {
 
   Renderer.init(config.element, config.renderer);
   Scene.init();
+  const axis = new AxesHelper(5);
+  Scene.scene.add(axis);
   createGlobalLights();
-  PerspectiveCamera.init();
-  Renderer.setCamera(PerspectiveCamera.camera);
+  const camera = new PerspectiveCamera();
+  camera.position.set(20, 20, 20);
+  camera.lookAt(0, 0, 0);
+  Renderer.setCamera(camera);
   Mouse.init();
   Keyboard.init();
 
@@ -73,7 +78,7 @@ export function createSvemir(config: SvemirConfig): Svemir {
   plane.rotation.x = -Math.PI / 2;
   Scene.scene.add(plane);
 
-  const spectator = new Spectator(PerspectiveCamera.camera);
+  const spectator = new Spectator(camera);
 
   function frameTick() {
     if (stopFrameTick) {

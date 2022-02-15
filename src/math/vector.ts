@@ -1,3 +1,4 @@
+import { PI12 } from '../consts';
 import { Point2D, Point3D } from './point';
 
 export class Vector2D {
@@ -29,9 +30,9 @@ export class Vector2D {
       this.p2 = config.toPosition;
       this.calcS();
       const x = this.p.x - config.toPosition.x;
-      const y = this.p.y - config.toPosition.y;
-      this.s = Math.sqrt(x * x + y * y);
-      this.a = Math.acos(this.s / x);
+      const z = this.p.z - config.toPosition.z;
+      this.s = Math.sqrt(x * x + z * z);
+      this.a = Math.acos(x / this.s);
     } else {
       if (config.strength) {
         this.s = config.strength;
@@ -41,27 +42,27 @@ export class Vector2D {
       }
       this.p2 = new Point2D(
         this.s * Math.cos(this.a) + this.p.x,
-        this.s * Math.sin(this.a) + this.p.y,
+        this.s * Math.sin(this.a) + this.p.z,
       );
     }
   }
 
   private calcS(): void {
     const x = this.p.x - this.p2.x;
-    const y = this.p.y - this.p2.y;
-    this.s = Math.sqrt(x * x + y * y);
+    const z = this.p.z - this.p2.z;
+    this.s = Math.sqrt(x * x + z * z);
   }
   private calcP2(): void {
     this.p2.set(
       this.s * Math.cos(this.a) + this.p.x,
-      this.s * Math.sin(this.a) + this.p.y,
+      this.s * Math.sin(this.a) + this.p.z,
     );
   }
   public vecTo(position: Point2D): Vector2D {
     const x = this.p.x - position.x;
-    const y = this.p.y - position.y;
-    const strength = Math.sqrt(x * x + y * y);
-    const angle = Math.acos(strength / x);
+    const z = this.p.z - position.z;
+    const strength = Math.sqrt(x * x + z * z);
+    const angle = Math.acos(x / strength);
 
     return new Vector2D({ position: this.p, strength, angle });
   }
@@ -69,17 +70,17 @@ export class Vector2D {
     this.p.setX(x);
     this.calcP2();
   }
-  public setY(y: number): void {
-    this.p.setY(y);
+  public setZ(z: number): void {
+    this.p.setZ(z);
     this.calcP2();
   }
-  public setPosition(x: number, y: number): void {
-    this.p.set(x, y);
+  public setPosition(x: number, z: number): void {
+    this.p.set(x, z);
     this.calcP2();
   }
-  public moveBy(x: number, y: number): void {
-    this.p.set(this.p.x + x, this.p.y + y);
-    this.p2.set(this.p2.x + x, this.p2.y + y);
+  public moveBy(x: number, z: number): void {
+    this.p.set(this.p.x + x, this.p.z + z);
+    this.p2.set(this.p2.x + x, this.p2.z + z);
   }
   public setAngle(angle: number): void {
     this.a = angle;
@@ -127,15 +128,18 @@ export class Vector3D {
     angleWithX?: number;
     angleWithZ?: number;
     toPosition?: Point3D;
+    onUpdate?(): void;
   }) {
     this.p = config.position;
     if (config.toPosition) {
       this.p2 = config.toPosition;
       this.calcS();
       const x = this.p.x - config.toPosition.x;
-      const y = this.p.y - config.toPosition.y;
-      this.s = Math.sqrt(x * x + y * y);
-      this.a = Math.acos(this.s / x);
+      const z = this.p.z - config.toPosition.z;
+      const d = Math.sqrt(x * x + z * z);
+      this.a = Math.acos(x / d);
+      this.s = Math.sqrt(d * d + config.toPosition.y * config.toPosition.y);
+      this.b = PI12 - Math.acos(d / this.s);
     } else {
       if (config.strength) {
         this.s = config.strength;
@@ -148,9 +152,12 @@ export class Vector3D {
       }
       this.p2 = new Point3D(
         this.s * Math.cos(this.a) + this.p.x,
-        this.s * Math.sin(this.a) + this.p.y,
         this.s * Math.cos(this.b) + this.p.y,
+        this.s * Math.sin(this.a) + this.p.z,
       );
+    }
+    if (config.onUpdate) {
+      this.onUpdate = config.onUpdate;
     }
   }
 
@@ -161,51 +168,88 @@ export class Vector3D {
     const z = this.p.z - this.p2.z;
     this.s = Math.sqrt(d * d + z * z);
   }
+
   private calcP2(): void {
     this.p2.set(
       this.s * Math.cos(this.a) + this.p.x,
-      this.s * Math.sin(this.a) + this.p.y,
-      this.s * Math.cos(this.b) + this.p.z,
+      this.s * Math.cos(this.b) + this.p.y,
+      this.s * Math.sin(this.a) + this.p.z,
     );
   }
-  public vecTo(position: Point2D): Vector2D {
+
+  public vecTo(position: Point3D): Vector3D {
     const x = this.p.x - position.x;
     const y = this.p.y - position.y;
-    const strength = Math.sqrt(x * x + y * y);
-    const angle = Math.acos(strength / x);
+    const d = Math.sqrt(x * x + y * y);
+    const a = Math.acos(x / d);
+    const d2 = Math.sqrt(d * d + position.z * position.z);
+    const b = PI12 - Math.acos(d / d2);
 
-    return new Vector2D({ position: this.p, strength, angle });
+    return new Vector3D({
+      position: this.p,
+      strength: d2,
+      angleWithX: a,
+      angleWithZ: b,
+    });
   }
   public setX(x: number): void {
     this.p.setX(x);
     this.calcP2();
+    this.onUpdate();
   }
   public setY(y: number): void {
     this.p.setY(y);
     this.calcP2();
+    this.onUpdate();
   }
-  public setPosition(x: number, y: number): void {
-    this.p.set(x, y);
+  public setZ(z: number): void {
+    this.p.setZ(z);
     this.calcP2();
+    this.onUpdate();
   }
-  public moveBy(x: number, y: number): void {
-    this.p.set(this.p.x + x, this.p.y + y);
-    this.p2.set(this.p2.x + x, this.p2.y + y);
-  }
-  public setAngle(angle: number): void {
-    this.a = angle;
+  public setPosition(x: number, y: number, z: number): void {
+    this.p.set(x, y, z);
     this.calcP2();
+    this.onUpdate();
   }
-  public rotateBy(angle: number): void {
-    this.a += angle;
+  public moveBy(x: number, y: number, z: number): void {
+    this.p.set(this.p.x + x, this.p.y + y, this.p.z + z);
+    this.p2.set(this.p2.x + x, this.p2.y + y, this.p2.z + z);
+    this.onUpdate();
+  }
+  public relativeMoveByX(x: number): void {
+    this.p.x += x + Math.cos(this.a) + x * Math.sin(this.a);
+    this.p.z += x * Math.sin(this.a) + x * Math.cos(this.a);
     this.calcP2();
+    this.onUpdate();
+  }
+  public setAngleWithX(a: number): void {
+    this.a = a;
+    this.calcP2();
+    this.onUpdate();
+  }
+  public setAngleWithZ(b: number): void {
+    this.b = b;
+    this.calcP2();
+    this.onUpdate();
+  }
+  public rotateBy(a: number, b: number): void {
+    this.a += a;
+    this.b += b;
+    this.calcP2();
+    this.onUpdate();
   }
   public setStrength(strength: number): void {
     this.s = strength;
     this.calcP2();
+    this.onUpdate();
   }
   public changeStrengthBy(strength: number): void {
     this.s += strength;
     this.calcP2();
+    this.onUpdate();
+  }
+  public onUpdate() {
+    // Do nothing;
   }
 }
