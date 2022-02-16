@@ -6,6 +6,7 @@ import {
   MeshStandardMaterial,
   PerspectiveCamera,
   PlaneGeometry,
+  SphereGeometry,
 } from 'three';
 import { Spectator } from './util';
 import { Keyboard } from './keyboard';
@@ -15,6 +16,7 @@ import { Renderer } from './renderer';
 import { Scene } from './scene';
 import { Ticker } from './ticker';
 import type { Svemir, SvemirConfig } from './types';
+import { Entity } from './entity';
 
 function createGlobalLights(): {
   ambientLight: AmbientLight;
@@ -77,6 +79,18 @@ export function createSvemir(config: SvemirConfig): Svemir {
   plane.receiveShadow = true;
   plane.rotation.x = -Math.PI / 2;
   Scene.scene.add(plane);
+
+  const box = new Entity({
+    obj: new Mesh(
+      new SphereGeometry(2),
+      new MeshStandardMaterial({
+        color: 0x00ff00,
+      }),
+    ),
+  });
+  box.obj.translateY(2);
+  box.showBB();
+  Scene.scene.add(box.obj);
 
   const spectator = new Spectator(camera);
 

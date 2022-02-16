@@ -18,9 +18,11 @@ export class Spectator {
   private state: {
     x: number;
     z: number;
+    y: number;
   } = {
     x: 0,
     z: 0,
+    y: 0
   };
 
   constructor(private camera: PerspectiveCamera) {
@@ -32,6 +34,9 @@ export class Spectator {
         }
         if (!state.a && !state.d) {
           this.state.x = 0;
+        }
+        if (!state.shift && !state[' ']) {
+          this.state.y = 0;
         }
       },
     );
@@ -47,6 +52,11 @@ export class Spectator {
           this.state.x = -this.acc;
         } else if (state.d) {
           this.state.x = this.acc;
+        }
+        if (state.shift) {
+          this.state.y = -this.acc;
+        } else if (state[' ']) {
+          this.state.y = this.acc;
         }
       },
     );
@@ -65,6 +75,9 @@ export class Spectator {
       }
       if (this.state.x !== 0) {
         this.camera.translateX(this.state.x);
+      }
+      if (this.state.y !== 0) {
+        this.camera.translateY(this.state.y);
       }
     });
   }

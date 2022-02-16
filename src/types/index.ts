@@ -1,6 +1,7 @@
 export * from './camera';
 
 export * from './config';
+export * from './entity';
 export * from './keyboard';
 export * from './loader';
 export * from './main';
