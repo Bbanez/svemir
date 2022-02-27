@@ -28,4 +28,11 @@ export class Ticker {
       delete this.subs[id];
     };
   }
+  static clear() {
+    const ids = Object.keys(this.subs);
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      delete this.subs[id];
+    }
+  }
 }
