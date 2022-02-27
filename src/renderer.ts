@@ -7,7 +7,7 @@ export class Renderer {
   static renderer = new WebGLRenderer();
   static width = 0;
   static height = 0;
-  private static camera: PerspectiveCamera;
+  static camera: PerspectiveCamera;
 
   static init(el: HTMLElement, config?: SvemirConfigRenderer) {
     if (!config) {
@@ -46,6 +46,8 @@ export class Renderer {
   }
 
   static render() {
-    this.renderer.render(Scene.scene, this.camera);
+    if (this.camera) {
+      this.renderer.render(Scene.scene, this.camera);
+    }
   }
 }
