@@ -11,7 +11,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "jsx": "preserve",
-    "incremental": true,
+    "incremental": false,
     "importsNotUsedAsValues": "error",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
