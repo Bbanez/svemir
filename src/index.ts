@@ -11,5 +11,6 @@ export * from './main';
 export * from './mouse';
 export * from './renderer';
 export * from './scene';
+export * from './shader-manager';
 export * from './storage';
 export * from './ticker';

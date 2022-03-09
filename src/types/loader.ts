@@ -25,5 +25,5 @@ export interface LoaderItem {
 export type LoaderOnLoadedData = Group | GLTF | Texture | CubeTexture | string;
 
 export interface LoaderOnLoadedCallback {
-  (item: LoaderItem, data: LoaderOnLoadedData): () => void;
+  (item: LoaderItem, data: LoaderOnLoadedData): void;
 }

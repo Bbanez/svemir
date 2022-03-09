@@ -31,8 +31,10 @@ export class Renderer {
         debounce = setTimeout(() => {
           this.width = window.innerWidth;
           this.height = window.innerHeight;
-          this.camera.aspect = this.width / this.height;
-          this.camera.updateProjectionMatrix();
+          if (this.camera) {
+            this.camera.aspect = this.width / this.height;
+            this.camera.updateProjectionMatrix();
+          }
           this.renderer.setSize(window.innerWidth, window.innerHeight);
           this.render();
         }, 200);
@@ -43,6 +45,8 @@ export class Renderer {
 
   static setCamera(camera: PerspectiveCamera): void {
     this.camera = camera;
+    this.camera.aspect = this.width / this.height;
+    this.camera.updateProjectionMatrix();
   }
 
   static render() {

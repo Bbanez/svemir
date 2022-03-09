@@ -40,6 +40,7 @@ export class Loader {
       });
     }
   }
+
   private static triggerProgress(item: LoaderItem, progress: number) {
     for (const id in this.subs) {
       this.subs[id]({
@@ -54,11 +55,13 @@ export class Loader {
       });
     }
   }
+
   private static triggerOnLoaded(item: LoaderItem, data: LoaderOnLoadedData) {
     for (const id in this.onLoadedSubs) {
       this.onLoadedSubs[id](item, data);
     }
   }
+
   private static async loadFbx(item: LoaderItem): Promise<Group> {
     this.triggerProgress(item, 0);
     return new Promise<Group>((resolve, reject) => {
@@ -78,6 +81,7 @@ export class Loader {
       );
     });
   }
+
   private static async loadGltf(item: LoaderItem): Promise<GLTF> {
     this.triggerProgress(item, 0);
     return new Promise<GLTF>((resolve, reject) => {
@@ -97,6 +101,7 @@ export class Loader {
       );
     });
   }
+
   private static async loadTexture(item: LoaderItem): Promise<Texture> {
     this.triggerProgress(item, 0);
     return new Promise<Texture>((resolve, reject) => {
@@ -116,6 +121,7 @@ export class Loader {
       );
     });
   }
+
   private static async loadCubeTexture(item: LoaderItem): Promise<CubeTexture> {
     this.triggerProgress(item, 0);
     return new Promise<CubeTexture>((resolve, reject) => {
@@ -135,6 +141,7 @@ export class Loader {
       );
     });
   }
+
   private static async loadString(item: LoaderItem): Promise<string> {
     this.triggerProgress(item, 0);
     const result = await Axios({
@@ -154,9 +161,15 @@ export class Loader {
       delete this.subs[id];
     };
   }
-  static register(item: LoaderItem): void {
-    this.items.push(item);
+
+  static register(item: LoaderItem | LoaderItem[]): void {
+    const i = item instanceof Array ? item : [item];
+    for (let j = 0; j < i.length; j++) {
+      const k = i[j];
+      this.items.push(k);
+    }
   }
+
   static onLoaded(callback: LoaderOnLoadedCallback): () => void {
     const id = uuidv4();
     this.onLoadedSubs[id] = callback;
@@ -164,45 +177,59 @@ export class Loader {
       delete this.onLoadedSubs[id];
     };
   }
+
   static async run(): Promise<void> {
-    this.loadedItemsCount = 0;
-    this.trigger('started');
-    let loop = true;
-    while (loop) {
-      const item = this.items.pop();
-      if (!item) {
-        loop = false;
-      } else {
-        switch (item.type) {
-          case 'fbx':
-            {
-              this.triggerOnLoaded(item, await this.loadFbx(item));
-            }
-            break;
-          case 'gltf':
-            {
-              this.triggerOnLoaded(item, await this.loadGltf(item));
-            }
-            break;
-          case 'texture':
-            {
-              this.triggerOnLoaded(item, await this.loadTexture(item));
-            }
-            break;
-          case 'cubeTexture':
-            {
-              this.triggerOnLoaded(item, await this.loadCubeTexture(item));
-            }
-            break;
-          case 'string':
-            {
-              this.triggerOnLoaded(item, await this.loadString(item));
-            }
-            break;
+    try {
+      this.loadedItemsCount = 0;
+      this.trigger('started');
+      let loop = true;
+      while (loop) {
+        const item = this.items.pop();
+        if (!item) {
+          loop = false;
+        } else {
+          switch (item.type) {
+            case 'fbx':
+              {
+                this.triggerOnLoaded(item, await this.loadFbx(item));
+              }
+              break;
+            case 'gltf':
+              {
+                this.triggerOnLoaded(item, await this.loadGltf(item));
+              }
+              break;
+            case 'texture':
+              {
+                this.triggerOnLoaded(item, await this.loadTexture(item));
+              }
+              break;
+            case 'cubeTexture':
+              {
+                this.triggerOnLoaded(item, await this.loadCubeTexture(item));
+              }
+              break;
+            case 'string':
+              {
+                this.triggerOnLoaded(item, await this.loadString(item));
+              }
+              break;
+          }
+          this.loadedItemsCount++;
         }
-        this.loadedItemsCount++;
       }
+      this.trigger('done');
+    } catch (error) {
+      console.error(error);
     }
-    this.trigger('done');
+  }
+
+  static destroy() {
+    for (const id in this.subs) {
+      delete this.subs[id];
+    }
+    for (const id in this.onLoadedSubs) {
+      delete this.onLoadedSubs[id];
+    }
   }
 }

@@ -43,6 +43,7 @@ export function createSvemir(config: SvemirConfig): Svemir {
     stopFrameTick = true;
     Scene.scene.clear();
     Ticker.clear();
+    Loader.destroy();
   }
   let stopFrameTick = false;
 
