@@ -1,4 +1,3 @@
-import { AmbientLight, DirectionalLight } from 'three';
 import { Keyboard } from './keyboard';
 import { Loader } from './loader';
 import { Mouse } from './mouse';
@@ -7,30 +6,30 @@ import { Scene } from './scene';
 import { Ticker } from './ticker';
 import type { Svemir, SvemirConfig } from './types';
 
-function createGlobalLights(): {
-  ambientLight: AmbientLight;
-  sun: DirectionalLight;
-} {
-  const ambientLight = new AmbientLight(0x404040);
-  Scene.scene.add(ambientLight);
+// function createGlobalLights(): {
+//   ambientLight: AmbientLight;
+//   sun: DirectionalLight;
+// } {
+//   const ambientLight = new AmbientLight(0x404040);
+//   Scene.scene.add(ambientLight);
 
-  const sun = new DirectionalLight(0x433d4a);
-  sun.position.set(-59, 100, 35);
-  sun.castShadow = true;
-  sun.lookAt(0, 0, 0);
-  sun.shadow.mapSize.width = 4096;
-  sun.shadow.mapSize.height = 4096;
-  sun.shadow.camera.left = 200;
-  sun.shadow.camera.right = -200;
-  sun.shadow.camera.top = 200;
-  sun.shadow.camera.bottom = -200;
-  Scene.scene.add(sun);
+//   const sun = new DirectionalLight(0x433d4a);
+//   sun.position.set(-59, 100, 35);
+//   sun.castShadow = true;
+//   sun.lookAt(0, 0, 0);
+//   sun.shadow.mapSize.width = 4096;
+//   sun.shadow.mapSize.height = 4096;
+//   sun.shadow.camera.left = 200;
+//   sun.shadow.camera.right = -200;
+//   sun.shadow.camera.top = 200;
+//   sun.shadow.camera.bottom = -200;
+//   Scene.scene.add(sun);
 
-  return {
-    ambientLight,
-    sun,
-  };
-}
+//   return {
+//     ambientLight,
+//     sun,
+//   };
+// }
 
 export function createSvemir(config: SvemirConfig): Svemir {
   async function run() {
@@ -51,7 +50,7 @@ export function createSvemir(config: SvemirConfig): Svemir {
   Scene.init();
   // const axis = new AxesHelper(5);
   // Scene.scene.add(axis);
-  createGlobalLights();
+  // createGlobalLights();
   // const camera = new PerspectiveCamera();
   // camera.position.set(20, 20, 20);
   // camera.lookAt(0, 0, 0);
