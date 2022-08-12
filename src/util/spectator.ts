@@ -8,7 +8,7 @@ import type {
 } from '../types';
 import { KeyboardEventType, MouseEventType } from '../types';
 import { Ticker } from '../ticker';
-import { FunctionBuilder } from '.';
+// import { FunctionBuilder } from '.';
 
 interface State {
   ax: number;
@@ -39,16 +39,16 @@ export class Spectator {
     vy: 0,
   };
   private m = 10;
-  private c = 0.9;
+  // private c = 0.9;
   private thu = 100;
   private thd = -this.thu;
-  private fn = FunctionBuilder.linear2D([
-    [-6, -this.m],
-    [-5, -this.m],
-    [0, 0],
-    [5, this.m],
-    [6, this.m],
-  ]);
+  // private fn = FunctionBuilder.linear2D([
+  //   [-6, -this.m],
+  //   [-5, -this.m],
+  //   [0, 0],
+  //   [5, this.m],
+  //   [6, this.m],
+  // ]);
 
   private calc(key: 'ax' | 'ay' | 'az'): void {
     const vKey: 'vx' | 'vy' | 'vz' =

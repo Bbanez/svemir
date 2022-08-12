@@ -9,6 +9,9 @@ const component = defineComponent({
         <Link class="home--project" href="/mind-snake">
           Mind Snake
         </Link>
+        <Link class="home--project" href="/faded">
+          Faded
+        </Link>
       </div>
     );
   },

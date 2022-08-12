@@ -16,6 +16,14 @@ const routes: Array<RouteRecordRaw> = [
         /* webpackChunkName: "mind-snake" */ '../views/mind-snake.vue'
       ),
   },
+  {
+    path: `/faded`,
+    name: 'FadedHome',
+    component: () =>
+      import(
+        /* webpackChunkName: "faded-home" */ '../faded/home.vue'
+      ),
+  },
 ];
 
 const router = createRouter({

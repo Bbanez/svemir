@@ -16,7 +16,7 @@ export class Mouse {
     delta: {
       x: 0,
       y: 0,
-    }
+    },
   };
   private static subs: {
     [MouseEventType.ALL]: MouseSubscription;
@@ -32,7 +32,7 @@ export class Mouse {
 
   private static trigger(type: MouseEventType, event: MouseEvent) {
     for (const id in Mouse.subs[type]) {
-      Mouse.subs[MouseEventType.ALL][id](Mouse.state, event);
+      Mouse.subs[type][id](Mouse.state, event);
     }
     for (const id in Mouse.subs[MouseEventType.ALL]) {
       Mouse.subs[MouseEventType.ALL][id](Mouse.state, event);
@@ -60,17 +60,17 @@ export class Mouse {
     if (event.button === 0) {
       if (Mouse.state.left) {
         Mouse.state.left = false;
-        Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
+        Mouse.trigger(MouseEventType.MOUSE_UP, event);
       }
     } else if (event.button === 1) {
       if (Mouse.state.middle) {
         Mouse.state.middle = false;
-        Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
+        Mouse.trigger(MouseEventType.MOUSE_UP, event);
       }
     } else if (event.button === 2) {
       if (Mouse.state.right) {
         Mouse.state.right = false;
-        Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
+        Mouse.trigger(MouseEventType.MOUSE_UP, event);
       }
     }
   }
@@ -101,7 +101,6 @@ export class Mouse {
     type: MouseEventType,
     callback: MouseEventCallback,
   ): () => void {
-    callback(Mouse.state, undefined as never);
     const id = uuidv4();
     Mouse.subs[type][id] = callback;
 

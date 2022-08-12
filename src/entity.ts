@@ -4,8 +4,8 @@ import type { EntityConfig } from './types';
 
 export class Entity {
   obj: Mesh;
-  private bb: Box3;
-  private bbg: Mesh | undefined;
+  protected bb: Box3;
+  protected bbg: Mesh | undefined;
 
   constructor(config: EntityConfig) {
     this.obj = config.obj;

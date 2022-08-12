@@ -3,7 +3,7 @@ export class ShaderManager<Shaders extends { [name: string]: string }> {
 
   load(name: keyof Shaders): string {
     if (!this.shaders[name]) {
-      throw Error(`Shader with name "${name}" does not exist.`);
+      throw Error(`Shader with name "${String(name)}" does not exist.`);
     }
     return this.resolve(this.shaders[name]);
   }
