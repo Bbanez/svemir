@@ -28,6 +28,10 @@ const component = defineComponent({
       if (game) {
         await game.destroy();
       }
+      if (container.value) {
+        container.value.innerHTML = '';
+      }
+      window.location.reload();
     });
 
     return () => <div class="faded" ref={container} />;

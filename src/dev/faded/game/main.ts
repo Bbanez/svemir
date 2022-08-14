@@ -1,14 +1,25 @@
-import { AmbientLight, AxesHelper, DirectionalLight, Vector3 } from 'three';
-import type { CubeTexture } from 'three';
-import { Loader } from '../../../loader';
+import {
+  AmbientLight,
+  AxesHelper,
+  BoxBufferGeometry,
+  DirectionalLight,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  Vector3,
+} from 'three';
 import { createSvemir } from '../../../main';
 import { Scene } from '../../../scene';
 import type { Camera, Game, GameConfig } from './types';
 import { createPlayer, Player } from './player';
 import { createCamera } from './camera';
 import { MouseRay } from './mouse-ray';
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Ticker } from '../../../ticker';
+import { Assets, loadAssets } from './assets';
+import { getPixelMatrixFromTexture } from './util';
+import { PathFinder } from './path-finder';
+import { Point2D } from '../../../math';
+import { Obstacle } from './obstacle';
 
 async function createUtils() {
   const axHelp = new AxesHelper(500);
@@ -18,9 +29,9 @@ async function createUtils() {
 async function createGlobalLights(config: { player: Player }): Promise<{
   destroy(): Promise<void>;
 }> {
-  const ambLight = new AmbientLight(0xffffff, 0.3);
+  const ambLight = new AmbientLight(0xffffff, 0.4);
   Scene.scene.add(ambLight);
-  const dirLight = new DirectionalLight(0xa584bc, 0.7);
+  const dirLight = new DirectionalLight(0x9e73bc, 0.3);
   const dirLightOffset = {
     x: -400,
     y: 250,
@@ -56,11 +67,6 @@ async function createGlobalLights(config: { player: Player }): Promise<{
         dirLightOffset.z + config.player.obj.position.z,
       ),
     );
-    // dirLight.position.set(
-    //   dirLightOffset.x + config.player.obj.position.x,
-    //   dirLightOffset.y + config.player.obj.position.y,
-    //   dirLightOffset.z + config.player.obj.position.z,
-    // );
     dirLight.lookAt(
       config.player.obj.position.x,
       config.player.obj.position.y,
@@ -75,65 +81,100 @@ async function createGlobalLights(config: { player: Player }): Promise<{
   };
 }
 
-async function createEnv(config: { cam: Camera; player: Player }): Promise<{
+async function createEnv() {
+  Assets.map.scene.uuid = 'map';
+  Assets.map.scene.scale.setScalar(200);
+  Assets.map.scene.position.set(200, 0, 200);
+  Assets.map.scene.traverse((c) => {
+    c.castShadow = true;
+    c.receiveShadow = true;
+  });
+  Scene.scene.add(Assets.map.scene);
+  const nogoMap = getPixelMatrixFromTexture(Assets.masksNogo, 0);
+  const group = new Group();
+  PathFinder.obstacles = [];
+  for (let i = 0; i < nogoMap.length; i++) {
+    for (let j = 0; j < nogoMap[i].length; j++) {
+      const x = nogoMap[i][j];
+      if (x > 100) {
+        const o = new Obstacle(new Point2D(j, i), 1, 1, 1, 1);
+        PathFinder.obstacles.push(o);
+        const box = new Mesh(
+          new BoxBufferGeometry(1, 25, 1),
+          new MeshStandardMaterial({
+            color: 0xff0000,
+          }),
+        );
+        box.position.set(o.q.x + 0.5, 0, o.q.z + 0.5);
+        group.add(box);
+        const bb = new Mesh(
+          new BoxBufferGeometry(o.qa + 2 * o.lx, 26, o.qb + 2 * o.lz),
+          new MeshStandardMaterial({
+            color: 0xffee00,
+            opacity: 0.3,
+            transparent: true,
+          }),
+        );
+        bb.position.set(o.q.x + 0.5, 0, o.q.z + 0.5);
+        group.add(bb);
+        const b = new Mesh(
+          new BoxBufferGeometry(0.1, 26, 0.1),
+          new MeshStandardMaterial({
+            color: 0xff00ff,
+          }),
+        );
+        b.position.set(o.q.x, 0, o.q.z);
+        group.add(b);
+        for (let k = 0; k < 4; k++) {
+          const c = o.corners[k];
+          const cb = new Mesh(
+            new BoxBufferGeometry(0.1, 26, 0.1),
+            new MeshStandardMaterial({
+              color: 0xff00ff,
+            }),
+          );
+          cb.position.set(c.x, 0, c.z);
+          group.add(cb);
+        }
+      }
+    }
+  }
+  Scene.scene.add(group);
+}
+
+async function initMouseRay(config: { cam: Camera; player: Player }): Promise<{
   destroy(): Promise<void>;
 }> {
-  let mouseRay: MouseRay | undefined;
-  Loader.onLoaded((item, data) => {
-    if (item.name === 'skybox') {
-      Scene.scene.background = data as CubeTexture;
-    } else if (item.name === 'map') {
-      const map = data as GLTF;
-      map.scene.uuid = 'map';
-      map.scene.scale.setScalar(200);
-      map.scene.traverse((c) => {
-        c.castShadow = true;
-        c.receiveShadow = true;
-      });
-      Scene.scene.add(map.scene);
-      mouseRay = new MouseRay(config.cam.cam, map.scene);
-      mouseRay.subscribe((inter) => {
-        if (inter[0]) {
-          config.player.moveToPosition(inter[0].point);
-        }
-      });
+  const mouseRay = new MouseRay(config.cam.cam, Assets.map.scene);
+  mouseRay.subscribe((inter) => {
+    if (inter[0]) {
+      // config.player.setDesiredPosition(inter[0].point.x, inter[0].point.z);
+      config.player.setPath(
+        PathFinder.resolve(
+          new Point2D(
+            config.player.obj.position.x,
+            config.player.obj.position.z,
+          ),
+          new Point2D(inter[0].point.x, inter[0].point.z),
+        ),
+      );
     }
   });
 
-  Loader.register([
-    {
-      path: [
-        '/assets/faded/skybox/xn.png',
-        '/assets/faded/skybox/xp.png',
-        '/assets/faded/skybox/yp.png',
-        '/assets/faded/skybox/yn.png',
-        '/assets/faded/skybox/zp.png',
-        '/assets/faded/skybox/zn.png',
-      ],
-      name: 'skybox',
-      type: 'cubeTexture',
-    },
-    {
-      path: '/assets/faded/maps/0/map.gltf',
-      name: 'map',
-      type: 'gltf',
-    },
-  ]);
-
   return {
     async destroy() {
-      if (mouseRay) {
-        await mouseRay.destroy();
-      }
+      await mouseRay.destroy();
     },
   };
 }
 
 export async function createGame(config: GameConfig): Promise<Game> {
   config.onReady = async () => {
-    await Loader.run();
+    // Do nothing for now
   };
   const game = createSvemir(config);
+  await loadAssets();
+  await createEnv();
   const player = await createPlayer({
     playerId: '',
   });
@@ -144,14 +185,14 @@ export async function createGame(config: GameConfig): Promise<Game> {
   const globalLights = await createGlobalLights({
     player,
   });
-  const gameEnv = await createEnv({ cam, player });
+  const mouseRay = await initMouseRay({ cam, player });
 
   await game.run();
 
   return {
     s: game,
     async destroy() {
-      await gameEnv.destroy();
+      await mouseRay.destroy();
       await globalLights.destroy();
       cam.destroy();
       await player.destroy();

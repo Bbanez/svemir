@@ -11,8 +11,7 @@ export class FunctionBuilder {
       );
       n.push(points[i - 1][1] - k[i - 1] * points[i - 1][0]);
     }
-
-    return (x) => {
+    const fn: Linear2DFn = ((x: number) => {
       let bestSectionIndex = 0;
 
       for (let i = 0; i < points.length - 1; i++) {
@@ -23,6 +22,19 @@ export class FunctionBuilder {
       }
 
       return k[bestSectionIndex] * x + n[bestSectionIndex];
-    }
+    }) as never;
+    fn.inverse = (z) => {
+      let bestSectionIndex = 0;
+
+      for (let i = 0; i < points.length - 1; i++) {
+        if (z >= points[i][1] && z <= points[i + 1][1]) {
+          bestSectionIndex = i;
+          break;
+        }
+      }
+
+      return (z - n[bestSectionIndex]) / k[bestSectionIndex];
+    };
+    return fn;
   }
 }

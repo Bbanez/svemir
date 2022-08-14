@@ -26,6 +26,21 @@ export class Point2D {
     this.x = x;
     this.z = z;
   }
+
+  public isEqual(point: Point2D, tolerance?: number): boolean {
+    if (!tolerance) {
+      tolerance = 0.01;
+    }
+    if (tolerance) {
+      return (
+        point.x > this.x - tolerance &&
+        point.x < this.x + tolerance &&
+        point.z > this.z - tolerance &&
+        point.z < this.z + tolerance
+      );
+    }
+    return this.x === point.x && this.z === point.z;
+  }
 }
 
 export class Point3D {
