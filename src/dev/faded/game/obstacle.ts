@@ -152,7 +152,6 @@ export class Obstacle {
     const bDist = B ? B.distanceFrom(origin) : 1000000000;
     const output: ObstacleIntersections = aDist < bDist ? [A, B] : [B, A];
 
-
     if (output[0] && output[1] && output[0].isEqual(origin, 0.01)) {
       for (let i = 0; i < this.corners.length; i++) {
         const corner = this.corners[i];

@@ -1,5 +1,6 @@
 import { BoxBufferGeometry, Mesh, MeshStandardMaterial } from 'three';
-import type { Point2D } from '../../../math';
+import { Logger } from '../../../logger';
+import { MathUtil, Point2D } from '../../../math';
 import { Scene } from '../../../scene';
 import { FunctionBuilder } from '../../../util';
 import type { Obstacle } from './obstacle';
@@ -9,7 +10,6 @@ export class PathFinder {
   public static obstacles: Obstacle[] = [];
 
   static resolve(origin: Point2D, target: Point2D): Point2D[] {
-    console.log(this.obstacles);
     const p: Point2D[] = [origin, target];
     let pFn = FunctionBuilder.linear2D([
       [origin.x, origin.z],
@@ -23,7 +23,6 @@ export class PathFinder {
     }
     let loopCount = 0;
     while (loop) {
-      console.log(loopCount);
       const areaX = [0, 0];
       const areaZ = [0, 0];
       if (p[n].x < p[n + 1].x) {
@@ -69,22 +68,6 @@ export class PathFinder {
             intersections: inters,
           });
         }
-        // for (let k = 0; k < o.corners.length; k++) {
-        //   const c = o.corners[k];
-        //   if (
-        //     (c.x >= areaX[0] &&
-        //       c.x <= areaX[1] &&
-        //       c.z >= areaZ[0] &&
-        //       c.z <= areaZ[1]) ||
-        //     (o.q.x >= areaX[0] &&
-        //       o.q.x <= areaX[1] &&
-        //       o.q.z >= areaZ[0] &&
-        //       o.q.z <= areaZ[1])
-        //   ) {
-        //     obstacles.push(o);
-        //     break;
-        //   }
-        // }
       }
       if (matchingQs.length > 0) {
         let minDist = 10000000000;
@@ -96,12 +79,17 @@ export class PathFinder {
               ? matchingQ.intersections[0]
               : (matchingQ.intersections[1] as Point2D),
           );
-          if (dist < minDist) {
-            minDist = dist;
-            bestMatchIdx = i;
+          if (
+            dist < minDist &&
+            matchingQ.intersections[0] &&
+            !matchingQ.intersections[0].isEqual(p[n])
+          ) {
+            if (!p[n - 2] || !p[n - 2].isEqual(p[n])) {
+              minDist = dist;
+              bestMatchIdx = i;
+            }
           }
         }
-        console.log({ bestMatchIdx });
         if (bestMatchIdx === -1) {
           loop = false;
         } else {
@@ -125,8 +113,34 @@ export class PathFinder {
           let corner: Point2D | null;
           if (q.intersections[0]) {
             corner = q.q.getClosestCorner(q.intersections[0]);
+            if (PathFinder.isPointInsideObstacle(corner)) {
+              for (let k = 0; k < q.q.corners.length; k++) {
+                const c = q.q.corners[k];
+                if (c.isEqual(corner)) {
+                  if (
+                    MathUtil.isEqual(c.x, q.intersections[0].x) ||
+                    MathUtil.isEqual(c.z, q.intersections[0].z)
+                  ) {
+                    corner = c;
+                  }
+                }
+              }
+            }
           } else if (q.intersections[1]) {
             corner = q.q.getClosestCorner(q.intersections[1]);
+            if (PathFinder.isPointInsideObstacle(corner)) {
+              for (let k = 0; k < q.q.corners.length; k++) {
+                const c = q.q.corners[k];
+                if (c.isEqual(corner)) {
+                  if (
+                    MathUtil.isEqual(c.x, q.intersections[1].x) ||
+                    MathUtil.isEqual(c.z, q.intersections[1].z)
+                  ) {
+                    corner = c;
+                  }
+                }
+              }
+            }
           } else {
             loop = false;
             break;
@@ -147,10 +161,35 @@ export class PathFinder {
       }
       loopCount++;
       if (loopCount > 1000) {
+        Logger.log(p);
         throw Error('Loop count limit');
       }
     }
-    console.log({ loopCount });
     return p.slice(1);
+  }
+
+  static findObstacleAtPosition(point: Point2D): Obstacle | null {
+    for (let i = 0; i < this.obstacles.length; i++) {
+      const obstacle = this.obstacles[i];
+      if (obstacle.q.isEqual(point)) {
+        return obstacle;
+      }
+    }
+    return null;
+  }
+
+  static isPointInsideObstacle(point: Point2D): Obstacle | null {
+    for (let i = 0; i < this.obstacles.length; i++) {
+      const obstacle = this.obstacles[i];
+      if (
+        point.x > obstacle.corners[1].x &&
+        point.x < obstacle.corners[0].x &&
+        point.z > obstacle.corners[0].z &&
+        point.z < obstacle.corners[3].z
+      ) {
+        return obstacle;
+      }
+    }
+    return null;
   }
 }

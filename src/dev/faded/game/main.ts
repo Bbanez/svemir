@@ -147,17 +147,12 @@ async function initMouseRay(config: { cam: Camera; player: Player }): Promise<{
 }> {
   const mouseRay = new MouseRay(config.cam.cam, Assets.map.scene);
   mouseRay.subscribe((inter) => {
-    if (inter[0]) {
-      // config.player.setDesiredPosition(inter[0].point.x, inter[0].point.z);
-      config.player.setPath(
-        PathFinder.resolve(
-          new Point2D(
-            config.player.obj.position.x,
-            config.player.obj.position.z,
-          ),
-          new Point2D(inter[0].point.x, inter[0].point.z),
-        ),
+    if (inter[0] && !PathFinder.isPointInsideObstacle(inter[0].point)) {
+      const path = PathFinder.resolve(
+        new Point2D(config.player.obj.position.x, config.player.obj.position.z),
+        new Point2D(inter[0].point.x, inter[0].point.z),
       );
+      config.player.setPath(path);
     }
   });
 
